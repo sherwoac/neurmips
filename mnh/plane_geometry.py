@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn 
 import torch.nn.functional as F
 
+
 class PlaneGeometry(nn.Module):
     def __init__(
         self,
@@ -275,40 +276,25 @@ def get_points_lrf(
     lrf = torch.cat(lrf_list, dim=0).to(points.device)
     return lrf
 
-def orthonormal_basis_from_xy(xy):
+def orthonormal_basis_from_xy(xy: torch.Tensor):
     '''
     compute orthonormal basis from xy vector: (n, 3, 2)
     '''
     x, y = xy[:,:,0], xy[:,:,1]
     z = torch.cross(x, y, dim=-1)
     y = torch.cross(z, x, dim=-1)
-    x = F.normalize(x, dim=-1)
-    y = F.normalize(y, dim=-1)
-    z = F.normalize(z, dim=-1)
     xyz = torch.stack([x,y,z], dim=-1)
+    xyz = F.normalize(xyz, dim=-2)
     return xyz
 
-def orthonormal_basis_from_yz(yz):
+def orthonormal_basis_from_yz(yz: torch.Tensor):
     '''
     compute orthonormal basis from yz vector: (n, 3, 2)
     '''
     y, z = yz[:,:,0], yz[:,:,1]
     x = torch.cross(y, z, dim=-1)
     y = torch.cross(z, x, dim=-1)
-    x = F.normalize(x, dim=-1)
-    y = F.normalize(y, dim=-1)
-    z = F.normalize(z, dim=-1)
     xyz = torch.stack([x,y,z], dim=-1)
+    xyz = F.normalize(xyz, dim=-2)
     return xyz
 
-def test(): 
-    from .utils_vedo import visualize_geometry
-    points = torch.randn(1000, 3)
-    model = PlaneGeometry(10)
-    model.initialize(points, 20)
-    planes_points, planes_idx = model.sample_planes_points(2000)
-    
-    visualize_geometry(planes_points, model)
-
-if __name__ == '__main__':
-    test()
